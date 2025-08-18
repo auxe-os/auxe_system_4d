@@ -7,10 +7,13 @@ The format is based on Conventional Changelog.
 ## [Unreleased]
 
 ### Added
-- 
+- Inline monitor control bar rendered inside the CSS3D monitor container with A/Y/B buttons to switch screen content.
+- YouTube embed support via iframe-safe URLs; added fallback page for Bing to open externally.
+- Documentation updates describing View1 (desk) vs View2 (monitor) behavior and focus retention rules.
 
 ### Changed
-- 
+- Monitor focus detection now treats the entire monitor container (including controls) as in-computer, preventing unintended zoom-out when hovering the menu.
+- Screen controls positioned higher within the monitor to avoid overlap with content.
 
 ### Deprecated
 - 
@@ -19,7 +22,9 @@ The format is based on Conventional Changelog.
 - 
 
 ### Fixed
-- 
+- Prevented camera from leaving View2 when hovering or clicking the screen controls.
+- Resolved iframe "refused to connect" issues by switching to embeddable endpoints (YouTube) and a local fallback (Bing).
+- Reverted performance tweaks that caused regressions in scene updates and camera behavior.
 
 ### Security
 - 
