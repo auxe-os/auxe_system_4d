@@ -473,11 +473,11 @@ export default class MonitorScreen extends EventEmitter {
         wrapper.appendChild(
             makeBtn('A', 'https://auxe.framer.website/?editSite')
         );
-        // YouTube embed for requested video/playlist (autoplay muted for UX)
+        // YouTube embed (iframe-safe)
         wrapper.appendChild(
             makeBtn(
                 'Y',
-                'https://www.youtube.com/embed/495zc7_vGgA?list=RD495zc7_vGgA&start_radio=1&autoplay=1&mute=1&controls=1&playsinline=1&rel=0'
+                'https://www.youtube-nocookie.com/embed/495zc7_vGgA?autoplay=1&mute=1&controls=1&playsinline=1&rel=0'
             )
         );
         // Bing homepage blocks framing; use a data-URI fallback with an external link
