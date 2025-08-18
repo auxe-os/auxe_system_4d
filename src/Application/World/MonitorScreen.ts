@@ -7,6 +7,7 @@ import Resources from '../Utils/Resources';
 import Sizes from '../Utils/Sizes';
 import Camera from '../Camera/Camera';
 import EventEmitter from '../Utils/EventEmitter';
+import UIEventBus from '../UI/EventBus';
 
 const SCREEN_SIZE = { w: 1280, h: 1024 };
 const IFRAME_PADDING = 32;
@@ -33,6 +34,10 @@ export default class MonitorScreen extends EventEmitter {
     mouseClickInProgress: boolean;
     dimmingPlane: THREE.Mesh;
     videoTextures: { [key in string]: THREE.VideoTexture };
+    iframeEl?: HTMLIFrameElement;
+    controlsEl?: HTMLDivElement;
+    containerEl?: HTMLDivElement;
+    
 
     constructor() {
         super();
@@ -55,19 +60,37 @@ export default class MonitorScreen extends EventEmitter {
         const maxOffset = this.createTextureLayers();
         this.createEnclosingPlanes(maxOffset);
         this.createPerspectiveDimmer(maxOffset);
+
+        // Listen for UI requests to change the embedded screen URL
+        UIEventBus.on('setScreenURL', (url: string) => {
+            this.setScreenURL(url);
+        });
+
+        // Show/hide inline controls based on focus state
+        UIEventBus.on('enterMonitor', () => {
+            if (this.controlsEl) this.controlsEl.style.display = 'flex';
+        });
+        UIEventBus.on('leftMonitor', () => {
+            if (this.controlsEl) this.controlsEl.style.display = 'none';
+        });
     }
 
     initializeScreenEvents() {
         document.addEventListener(
             'mousemove',
             (event) => {
-                // @ts-ignore
-                const id = event.target.id;
-                if (id === 'computer-screen') {
-                    // @ts-ignore
-                    event.inComputer = true;
+                let isInComputer = false;
+                if (this.containerEl && (event as any).clientX !== undefined) {
+                    const rect = this.containerEl.getBoundingClientRect();
+                    const x = (event as any).clientX;
+                    const y = (event as any).clientY;
+                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
                 }
 
+                // @ts-ignore
+                event.inComputer = isInComputer;
+
+                // Keep focus when hovering anywhere inside container (including controls)
                 // @ts-ignore
                 this.inComputer = event.inComputer;
 
@@ -102,6 +125,15 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mousedown',
             (event) => {
+                let isInComputer = false;
+                if (this.containerEl && (event as any).clientX !== undefined) {
+                    const rect = this.containerEl.getBoundingClientRect();
+                    const x = (event as any).clientX;
+                    const y = (event as any).clientY;
+                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                }
+                // @ts-ignore
+                event.inComputer = isInComputer;
                 // @ts-ignore
                 this.inComputer = event.inComputer;
                 this.application.mouse.trigger('mousedown', [event]);
@@ -114,6 +146,16 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mouseup',
             (event) => {
+                let isInComputer = false;
+                if (this.containerEl && (event as any).clientX !== undefined) {
+                    const rect = this.containerEl.getBoundingClientRect();
+                    const x = (event as any).clientX;
+                    const y = (event as any).clientY;
+                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                }
+                // @ts-ignore
+                event.inComputer = isInComputer;
+                // Retain focus if mouseup occurred inside container
                 // @ts-ignore
                 this.inComputer = event.inComputer;
                 this.application.mouse.trigger('mouseup', [event]);
@@ -140,6 +182,7 @@ export default class MonitorScreen extends EventEmitter {
         container.style.height = this.screenSize.height + 'px';
         container.style.opacity = '1';
         container.style.background = '#1d2e2f';
+        this.containerEl = container as HTMLDivElement;
 
         // Create iframe
         const iframe = document.createElement('iframe');
@@ -183,7 +226,7 @@ export default class MonitorScreen extends EventEmitter {
         };
 
         // Set iframe attributes
-        // PROD
+        // PROD default URL
         iframe.src = 'https://auxe.framer.website/?editSite';
         /**
          * Use dev server is query params are present
@@ -205,13 +248,26 @@ export default class MonitorScreen extends EventEmitter {
         iframe.id = 'computer-screen';
         iframe.frameBorder = '0';
         iframe.title = 'HeffernanOS';
+        // Allow common embed permissions (e.g., YouTube)
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share';
+        // Reduce cross-origin leakage
+        // @ts-ignore
+        iframe.referrerPolicy = 'no-referrer';
+
+        // Keep a handle for dynamic URL switching
+        this.iframeEl = iframe;
 
         // Add iframe to container
         container.appendChild(iframe);
 
+        // Inline controls overlay inside monitor container
+        this.createScreenControls(container);
+
         // Create CSS plane
         this.createCssPlane(container);
     }
+
+    
 
     /**
      * Creates a CSS plane and GL plane to properly occlude the CSS plane
@@ -368,6 +424,70 @@ export default class MonitorScreen extends EventEmitter {
         mesh.rotation.copy(this.rotation);
 
         this.scene.add(mesh);
+    }
+
+    setScreenURL(url: string) {
+        if (this.iframeEl) {
+            this.iframeEl.src = url;
+        }
+    }
+
+    createScreenControls(container: HTMLElement) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'screen-controls';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '50%';
+        // Position higher up inside the monitor viewport to avoid overlapping footer UI
+        wrapper.style.bottom = '128px';
+        wrapper.style.transform = 'translateX(-50%)';
+        wrapper.style.display = 'none';
+        wrapper.style.gap = '8px';
+        wrapper.style.padding = '6px';
+        wrapper.style.background = 'rgba(0,0,0,0.6)';
+        wrapper.style.border = '1px solid #fff';
+        wrapper.style.borderRadius = '9999px';
+        wrapper.style.pointerEvents = 'auto';
+        wrapper.style.zIndex = '2';
+        wrapper.id = 'prevent-click';
+
+        const makeBtn = (label: string, url: string) => {
+            const btn = document.createElement('button');
+            btn.id = 'prevent-click';
+            btn.setAttribute('aria-label', `Open ${label}`);
+            btn.style.width = '28px';
+            btn.style.height = '28px';
+            btn.style.borderRadius = '9999px';
+            btn.style.border = '1px solid #fff';
+            btn.style.background = '#000';
+            btn.style.color = '#fff';
+            btn.style.cursor = 'pointer';
+            btn.textContent = label;
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setScreenURL(url);
+            });
+            return btn;
+        };
+
+        // auxeOS current site
+        wrapper.appendChild(
+            makeBtn('A', 'https://auxe.framer.website/?editSite')
+        );
+        // YouTube embed for requested video/playlist (autoplay muted for UX)
+        wrapper.appendChild(
+            makeBtn(
+                'Y',
+                'https://www.youtube.com/embed/495zc7_vGgA?list=RD495zc7_vGgA&start_radio=1&autoplay=1&mute=1&controls=1&playsinline=1&rel=0'
+            )
+        );
+        // Bing homepage blocks framing; use a data-URI fallback with an external link
+        const bingData = encodeURIComponent(`<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Bing (Open Externally)</title><style>html,body{height:100%;margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}.wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}a{color:#4ea1ff}.btn{border:1px solid #fff;padding:8px 12px;background:#111;color:#fff;text-decoration:none;border-radius:6px}</style></head><body><div class='wrap'><div>Bing blocks being displayed inside an embedded screen.</div><a class='btn' href='https://www.bing.com/' target='_blank' rel='noopener noreferrer'>Open Bing in a new tab</a></div></body></html>`);
+        wrapper.appendChild(
+            makeBtn('B', `data:text/html;charset=utf-8,${bingData}`)
+        );
+
+        container.appendChild(wrapper);
+        this.controlsEl = wrapper as HTMLDivElement;
     }
 
     /**
