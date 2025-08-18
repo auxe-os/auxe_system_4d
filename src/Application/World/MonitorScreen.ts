@@ -526,6 +526,14 @@ export default class MonitorScreen extends EventEmitter {
         wrapper.appendChild(
             makeBtn('B', 'https://auxedj-79538617613.us-west1.run.app')
         );
+        // G → goonify app
+        wrapper.appendChild(
+            makeBtn('G', 'https://goonify-79538617613.us-west1.run.app')
+        );
+        // I → Insta Stories Viewer
+        wrapper.appendChild(
+            makeBtn('I', 'https://insta-stories-viewer.com/')
+        );
 
         container.appendChild(wrapper);
         this.controlsEl = wrapper as HTMLDivElement;
