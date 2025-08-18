@@ -257,6 +257,19 @@ export default class MonitorScreen extends EventEmitter {
         // Keep a handle for dynamic URL switching
         this.iframeEl = iframe;
 
+        // Ensure click sounds fire for all interactions inside the computer screen (cross-origin safe)
+        // Synthesize host-level mouse events when interacting with the iframe
+        iframe.addEventListener('pointerdown', () => {
+            const ev: any = new CustomEvent('mousedown', { bubbles: true, cancelable: false });
+            ev.inComputer = true;
+            document.dispatchEvent(ev);
+        });
+        iframe.addEventListener('pointerup', () => {
+            const ev: any = new CustomEvent('mouseup', { bubbles: true, cancelable: false });
+            ev.inComputer = true;
+            document.dispatchEvent(ev);
+        });
+
         // Add iframe to container
         container.appendChild(iframe);
 
