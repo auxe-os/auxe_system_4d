@@ -258,17 +258,22 @@ export default class MonitorScreen extends EventEmitter {
         this.iframeEl = iframe;
 
         // Ensure click sounds fire for all interactions inside the computer screen (cross-origin safe)
-        // Synthesize host-level mouse events when interacting with the iframe
-        iframe.addEventListener('pointerdown', () => {
-            const ev: any = new CustomEvent('mousedown', { bubbles: true, cancelable: false });
+        // Synthesize host-level mouse/touch events when interacting with the iframe
+        const fireHostEvent = (type: 'mousedown' | 'mouseup') => {
+            const ev: any = new CustomEvent(type, { bubbles: true, cancelable: false });
             ev.inComputer = true;
             document.dispatchEvent(ev);
-        });
-        iframe.addEventListener('pointerup', () => {
-            const ev: any = new CustomEvent('mouseup', { bubbles: true, cancelable: false });
-            ev.inComputer = true;
-            document.dispatchEvent(ev);
-        });
+        };
+        const handlers: [string, () => void][] = [
+            ['pointerdown', () => fireHostEvent('mousedown')],
+            ['pointerup', () => fireHostEvent('mouseup')],
+            ['mousedown', () => fireHostEvent('mousedown')],
+            ['mouseup', () => fireHostEvent('mouseup')],
+            ['click', () => fireHostEvent('mouseup')],
+            ['touchstart', () => fireHostEvent('mousedown')],
+            ['touchend', () => fireHostEvent('mouseup')],
+        ];
+        handlers.forEach(([evt, fn]) => iframe.addEventListener(evt as any, fn, { passive: true } as any));
 
         // Add iframe to container
         container.appendChild(iframe);
