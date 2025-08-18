@@ -497,16 +497,16 @@ export default class MonitorScreen extends EventEmitter {
         wrapper.appendChild(
             makeBtn('A', 'https://auxe.framer.website/?editSite')
         );
-        // YouTube embed via local wrapper so clicks can be bridged reliably
+        // Y → external gemini app
         wrapper.appendChild(
             makeBtn(
                 'Y',
-                '/static/iframe-pages/video.html?vid=495zc7_vGgA'
+                'https://gemini-95-79538617613.us-west1.run.app/'
             )
         );
-        // Local basic search wrapper (opens results externally)
+        // B → external chord-clause wiki app
         wrapper.appendChild(
-            makeBtn('B', '/static/iframe-pages/search.html')
+            makeBtn('B', 'https://chord-clause-the-music-industry-wiki-79538617613.us-west1.run.app/')
         );
 
         container.appendChild(wrapper);
