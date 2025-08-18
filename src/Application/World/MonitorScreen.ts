@@ -191,6 +191,12 @@ export default class MonitorScreen extends EventEmitter {
         iframe.onload = () => {
             if (iframe.contentWindow) {
                 window.addEventListener('message', (event) => {
+                    // Only trust messages from our same-origin wrappers
+                    try {
+                        const allowed = [window.location.origin];
+                        if (event.origin && allowed.indexOf(event.origin) === -1) return;
+                    } catch (e) {}
+
                     var evt = new CustomEvent(event.data.type, {
                         bubbles: true,
                         cancelable: false,
@@ -487,21 +493,20 @@ export default class MonitorScreen extends EventEmitter {
             return btn;
         };
 
-        // auxeOS current site
+        // auxeOS current site (leave as-is)
         wrapper.appendChild(
             makeBtn('A', 'https://auxe.framer.website/?editSite')
         );
-        // YouTube embed (iframe-safe)
+        // YouTube embed via local wrapper so clicks can be bridged reliably
         wrapper.appendChild(
             makeBtn(
                 'Y',
-                'https://www.youtube-nocookie.com/embed/495zc7_vGgA?autoplay=1&mute=1&controls=1&playsinline=1&rel=0'
+                '/static/iframe-pages/video.html?vid=495zc7_vGgA'
             )
         );
-        // Bing homepage blocks framing; use a data-URI fallback with an external link
-        const bingData = encodeURIComponent(`<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Bing (Open Externally)</title><style>html,body{height:100%;margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}.wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}a{color:#4ea1ff}.btn{border:1px solid #fff;padding:8px 12px;background:#111;color:#fff;text-decoration:none;border-radius:6px}</style></head><body><div class='wrap'><div>Bing blocks being displayed inside an embedded screen.</div><a class='btn' href='https://www.bing.com/' target='_blank' rel='noopener noreferrer'>Open Bing in a new tab</a></div></body></html>`);
+        // Local basic search wrapper (opens results externally)
         wrapper.appendChild(
-            makeBtn('B', `data:text/html;charset=utf-8,${bingData}`)
+            makeBtn('B', '/static/iframe-pages/search.html')
         );
 
         container.appendChild(wrapper);
