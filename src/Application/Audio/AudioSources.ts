@@ -123,3 +123,51 @@ export class AmbienceAudio extends AudioSource {
         this.manager.setAudioVolume(this.poolKey, volumeClamped);
     }
 }
+
+export class RadioAudio extends AudioSource {
+    private currentKey: string | null = null;
+    private isOn: boolean = false;
+    private playlist: string[] = ['radio1', 'radio2', 'radio3'];
+
+    constructor(manager: AudioManager) {
+        super(manager);
+        UIEventBus.on('radioToggle', (on: boolean) => {
+            if (on) {
+                this.start();
+            } else {
+                this.stop();
+            }
+        });
+        UIEventBus.on('radioNext', () => {
+            if (this.isOn) this.next();
+        });
+    }
+
+    private start() {
+        this.isOn = true;
+        this.playRandom();
+    }
+
+    private stop() {
+        this.isOn = false;
+        if (this.currentKey) {
+            this.manager.stopAudio(this.currentKey);
+            this.currentKey = null;
+        }
+    }
+
+    private next() {
+        if (!this.isOn) return;
+        this.playRandom();
+    }
+
+    private playRandom() {
+        const pick = this.playlist[Math.floor(Math.random() * this.playlist.length)];
+        this.currentKey = this.manager.playAudio(pick, {
+            volume: 0.4,
+            randDetuneScale: 0,
+            loop: true,
+            position: new THREE.Vector3(200, -300, 900),
+        });
+    }
+}

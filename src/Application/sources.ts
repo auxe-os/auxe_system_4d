@@ -94,6 +94,21 @@ const sources: Resource[] = [
         type: 'audio',
         path: 'audio/cc/type.mp3',
     },
+    {
+        name: 'radio1',
+        type: 'audio',
+        path: 'audio/radio/1.mp3',
+    },
+    {
+        name: 'radio2',
+        type: 'audio',
+        path: 'audio/radio/2.mp3',
+    },
+    {
+        name: 'radio3',
+        type: 'audio',
+        path: 'audio/radio/3.mp3',
+    },
 ];
 
 export default sources;

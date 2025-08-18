@@ -79,8 +79,10 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mousemove',
             (event) => {
-                let isInComputer = false;
-                if (this.containerEl && (event as any).clientX !== undefined) {
+                // Preserve synthetic flag if present (e.g., bridged from iframe)
+                // Otherwise, compute based on container bounds
+                let isInComputer = (event as any).inComputer === true;
+                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
                     const rect = this.containerEl.getBoundingClientRect();
                     const x = (event as any).clientX;
                     const y = (event as any).clientY;
@@ -125,8 +127,10 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mousedown',
             (event) => {
-                let isInComputer = false;
-                if (this.containerEl && (event as any).clientX !== undefined) {
+                // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
+                // Otherwise, compute based on container bounds
+                let isInComputer = (event as any).inComputer === true;
+                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
                     const rect = this.containerEl.getBoundingClientRect();
                     const x = (event as any).clientX;
                     const y = (event as any).clientY;
@@ -146,8 +150,10 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mouseup',
             (event) => {
-                let isInComputer = false;
-                if (this.containerEl && (event as any).clientX !== undefined) {
+                // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
+                // Otherwise, compute based on container bounds
+                let isInComputer = (event as any).inComputer === true;
+                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
                     const rect = this.containerEl.getBoundingClientRect();
                     const x = (event as any).clientX;
                     const y = (event as any).clientY;
@@ -191,9 +197,15 @@ export default class MonitorScreen extends EventEmitter {
         iframe.onload = () => {
             if (iframe.contentWindow) {
                 window.addEventListener('message', (event) => {
-                    // Only trust messages from our same-origin wrappers
+                    // Trust messages only from approved origins (external apps + same-origin)
                     try {
-                        const allowed = [window.location.origin];
+                        const allowed = [
+                            window.location.origin,
+                            'https://auxe.framer.website',
+                            'https://gemini-95-79538617613.us-west1.run.app',
+                            'https://auxedj-79538617613.us-west1.run.app',
+                            'http://localhost:3000',
+                        ];
                         if (event.origin && allowed.indexOf(event.origin) === -1) return;
                     } catch (e) {}
 
@@ -232,7 +244,7 @@ export default class MonitorScreen extends EventEmitter {
         };
 
         // Set iframe attributes
-        // PROD default URL
+        // PROD default URL (original)
         iframe.src = 'https://auxe.framer.website/?editSite';
         /**
          * Use dev server is query params are present
@@ -250,6 +262,10 @@ export default class MonitorScreen extends EventEmitter {
         iframe.style.padding = IFRAME_PADDING + 'px';
         iframe.style.boxSizing = 'border-box';
         iframe.style.opacity = '1';
+        // Make sure the iframe can emit focus events reliably when clicked
+        // Some browsers require tabindex for focus events on the element
+        // without affecting tab order for keyboard users
+        iframe.tabIndex = -1;
         iframe.className = 'jitter';
         iframe.id = 'computer-screen';
         iframe.frameBorder = '0';
@@ -275,9 +291,11 @@ export default class MonitorScreen extends EventEmitter {
             ['pointerup', () => fireHostEvent('mouseup')],
             ['mousedown', () => fireHostEvent('mousedown')],
             ['mouseup', () => fireHostEvent('mouseup')],
-            ['click', () => fireHostEvent('mouseup')],
             ['touchstart', () => fireHostEvent('mousedown')],
             ['touchend', () => fireHostEvent('mouseup')],
+            // Fallbacks for cross-origin iframes: only true press/release via focus/blur
+            ['focus', () => fireHostEvent('mousedown')],
+            ['blur', () => fireHostEvent('mouseup')],
         ];
         handlers.forEach(([evt, fn]) => iframe.addEventListener(evt as any, fn, { passive: true } as any));
 
@@ -493,20 +511,20 @@ export default class MonitorScreen extends EventEmitter {
             return btn;
         };
 
-        // auxeOS current site (leave as-is)
+        // A → original site
         wrapper.appendChild(
             makeBtn('A', 'https://auxe.framer.website/?editSite')
         );
-        // Y → external gemini app
+        // Y → original external app
         wrapper.appendChild(
             makeBtn(
                 'Y',
-                'https://gemini-95-79538617613.us-west1.run.app/'
+                'https://gemini-95-79538617613.us-west1.run.app'
             )
         );
-        // B → external chord-clause wiki app
+        // B → original external app
         wrapper.appendChild(
-            makeBtn('B', 'https://chord-clause-the-music-industry-wiki-79538617613.us-west1.run.app/')
+            makeBtn('B', 'https://auxedj-79538617613.us-west1.run.app')
         );
 
         container.appendChild(wrapper);

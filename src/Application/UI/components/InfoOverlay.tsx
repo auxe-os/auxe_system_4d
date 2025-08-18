@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import FreeCamToggle from './FreeCamToggle';
+import RadioToggle from './RadioToggle';
 import MuteToggle from './MuteToggle';
 
 interface InfoOverlayProps {
@@ -127,6 +128,11 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({ visible }) => {
                     >
                         <p>{timeText}</p>
                     </div>
+                    {volumeVisible && (
+                        <div style={styles.lastRowChild}>
+                            <RadioToggle />
+                        </div>
+                    )}
                     {volumeVisible && (
                         <div style={styles.lastRowChild}>
                             <MuteToggle />

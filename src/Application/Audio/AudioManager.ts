@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application';
-import { AmbienceAudio, ComputerAudio } from './AudioSources';
+import { AmbienceAudio, ComputerAudio, RadioAudio } from './AudioSources';
 import UIEventBus from '../UI/EventBus';
 
 const POS_DEBUG = false;
@@ -14,6 +14,7 @@ export default class Audio {
     audioSources: {
         computer: ComputerAudio;
         ambience: AmbienceAudio;
+        radio: RadioAudio;
     };
     scene: THREE.Scene;
 
@@ -28,6 +29,7 @@ export default class Audio {
         this.audioSources = {
             computer: new ComputerAudio(this),
             ambience: new AmbienceAudio(this),
+            radio: new RadioAudio(this),
         };
 
         UIEventBus.on('loadingScreenDone', () => {
@@ -170,6 +172,20 @@ export default class Audio {
         if (a) {
             a.setVolume(volume);
         }
+    }
+
+    stopAudio(poolKey: string) {
+        const audio = this.audioPool[poolKey];
+        if (!audio) return;
+        try {
+            // @ts-ignore - stop() available on internal source node
+            if (audio.source && typeof audio.source.stop === 'function') {
+                audio.source.stop(0);
+            }
+        } catch (e) {}
+        delete this.audioPool[poolKey];
+        const positionalObject = this.scene.getObjectByName(poolKey);
+        if (positionalObject) this.scene.remove(positionalObject);
     }
 
     getRandomVariant(sourceName: string) {
