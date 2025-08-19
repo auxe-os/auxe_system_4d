@@ -519,7 +519,7 @@ export default class MonitorScreen extends EventEmitter {
         wrapper.appendChild(
             makeBtn(
                 'Y',
-                'https://auxe-agency-79538617613.us-west1.run.app'
+                'https://gemini-os-79538617613.us-west1.run.app'
             )
         );
         // B → original external app
