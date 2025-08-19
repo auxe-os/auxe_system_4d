@@ -524,7 +524,7 @@ export default class MonitorScreen extends EventEmitter {
         );
         // B → original external app
         wrapper.appendChild(
-            makeBtn('B', 'https://auxedj-79538617613.us-west1.run.app')
+            makeBtn('B', 'https://m-analyzer-66977310969.us-west1.run.app')
         );
         // G → goonify app
         wrapper.appendChild(
