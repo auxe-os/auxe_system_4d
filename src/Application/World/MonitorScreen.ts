@@ -37,7 +37,7 @@ export default class MonitorScreen extends EventEmitter {
     iframeEl?: HTMLIFrameElement;
     controlsEl?: HTMLDivElement;
     containerEl?: HTMLDivElement;
-    
+
 
     constructor() {
         super();
@@ -309,7 +309,7 @@ export default class MonitorScreen extends EventEmitter {
         this.createCssPlane(container);
     }
 
-    
+
 
     /**
      * Creates a CSS plane and GL plane to properly occlude the CSS plane
@@ -528,7 +528,7 @@ export default class MonitorScreen extends EventEmitter {
         );
         // G → goonify app
         wrapper.appendChild(
-            makeBtn('G', 'https://goonify-79538617613.us-west1.run.app')
+            makeBtn('G', 'https://f4pview-79538617613.us-west1.run.app')
         );
         // I → Insta Stories Viewer
         wrapper.appendChild(
