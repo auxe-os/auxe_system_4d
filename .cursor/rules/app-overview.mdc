@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+description: 'Overview and guidelines for the auxe.co portfolio website application.'
+---
+
+# auxe.co Portfolio Website - Application Overview
+
+This application is an interactive 3D portfolio website that simulates a desktop environment. Users can interact with a virtual computer setup, including a monitor that displays various web content.
+
+**Key Technologies:**
+
+-   **Three.js:** For 3D rendering and scene management.
+-   **React/TypeScript:** For building the user interface components.
+-   **Three.js/Post-processing Shaders:** For visual effects (e.g., coffee steam, screen effects).
+-   **Web Audio API:** For interactive sound effects and ambient audio.
+-   **CSS3DRenderer:** For embedding HTML content (iframes) within the 3D scene.
+
+**Core Functionality:**
+
+-   **Interactive 3D Environment:** Users can navigate a virtual room with a computer desk.
+-   **Dynamic Monitor Content:** The virtual monitor can display different web pages/applications via iframes.
+-   **Audio Feedback:** Sound effects for user interactions (mouse clicks, keyboard typing) and ambient background audio.
+-   **Camera Controls:** Transitions between different camera views (idle, desk, monitor, free cam).
+-   **Loading Screen:** Displays progress during asset loading and a WebGL compatibility check.
+
+**Development Guidelines:**
+
+-   **Performance:** Optimize 3D assets, shaders, and React components for smooth performance.
+-   **Responsiveness:** Ensure the application is responsive and functional across different screen sizes, especially for UI elements.
+-   **Maintainability:** Write clean, modular, and well-commented code. Follow existing patterns for Three.js scene management and React component structure.
+-   **User Experience:** Focus on intuitive interactions and clear visual/audio feedback.

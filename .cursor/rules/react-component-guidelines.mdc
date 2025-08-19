@@ -1,0 +1,19 @@
+---
+description: 'React component creation guidelines for UI components.'
+globs: ['src/Application/UI/components/**/*.tsx']
+alwaysApply: false
+---
+
+# React Component Development Guidelines
+
+When creating or modifying React components in the `src/Application/UI/components/` directory, adhere to the following:
+
+-   **Functional Components:** Always use functional components.
+-   **TypeScript:** Ensure all components are written in TypeScript, with clear interfaces for props.
+-   **Styling:** Use inline styles for simple, component-specific styling or integrate with Tailwind CSS classes via `cn` utility where applicable. Avoid creating new `.css` files unless absolutely necessary for global styles.
+-   **Event Handling:** Use `useCallback` for event handlers to prevent unnecessary re-renders.
+-   **State Management:** Prefer `useState` and `useEffect` for local component state. For global state or communication between disparate parts of the application, use the `UIEventBus`.
+-   **Prop Drilling:** Avoid excessive prop drilling. If data needs to be shared deeply, consider using `UIEventBus` or refactoring the component hierarchy.
+-   **Animations:** Utilize `framer-motion` for declarative animations. Define animation variants clearly.
+-   **Accessibility:** Ensure interactive elements are accessible (e.g., keyboard navigation, ARIA attributes where appropriate).
+-   **Asset Imports:** For image and audio assets, use the `import` syntax with `@ts-ignore` for non-TypeScript files as currently configured.

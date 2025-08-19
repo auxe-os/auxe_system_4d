@@ -528,7 +528,7 @@ export default class MonitorScreen extends EventEmitter {
         );
         // G → goonify app
         wrapper.appendChild(
-            makeBtn('G', 'https://f4pview-79538617613.us-west1.run.app')
+            makeBtn('G', 'https://f4pview-66977310969.us-west1.run.app')
         );
         // I → Insta Stories Viewer
         wrapper.appendChild(
