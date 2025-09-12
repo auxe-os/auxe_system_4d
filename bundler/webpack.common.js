@@ -24,6 +24,9 @@ module.exports = {
     resolve: {
         alias: {
             three: path.resolve('./node_modules/three'),
+            'three/examples/js/libs/stats.min': require.resolve(
+                'stats.js/build/stats.min.js'
+            ),
         },
         extensions: ['.tsx', '.ts', '.js'],
     },

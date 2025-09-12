@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>auxeOS — Mobile</title>
+    <meta name="description" content="auxeOS — mobile friendly landing. View projects and contact." />
+    <style>
+      :root {
+        --bg: #0b0b0b;
+        --fg: #e6e6e6;
+        --muted: #9aa3ad;
+        --accent: #7dd3fc;
+        --max: 960px;
+      }
+      html,body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .wrap {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        box-sizing: border-box;
+        gap: 20px;
+        text-align: center;
+      }
+      .card {
+        width: 100%;
+        max-width: var(--max);
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border: 1px solid rgba(255,255,255,0.03);
+        border-radius: 14px;
+        padding: 18px;
+        box-sizing: border-box;
+      }
+      img.preview {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        display: block;
+      }
+      h1 {
+        margin: 10px 0 6px 0;
+        font-size: 20px;
+        line-height: 1.1;
+      }
+      p.lead {
+        margin: 0 0 14px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: linear-gradient(90deg, #06b6d4, #60a5fa);
+        color: #081029;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--fg);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      .note {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      a.inline {
+        color: var(--accent);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="card" role="main" aria-labelledby="title">
+        <img class="preview" alt="auxeOS preview" src="../static/images/preview-new.jpg" />
+        <h1 id="title">auxeOS — Mobile friendly</h1>
+        <p class="lead">This site uses a rich desktop WebGL experience that performs poorly on many phones. For the best experience use a desktop or open the full site in a new tab.</p>
+
+        <div class="actions" role="navigation" aria-label="primary actions">
+          <a class="btn primary" href="/?desktop=true" target="_blank" rel="noopener">Open Desktop Experience</a>
+          <a class="btn ghost" href="/#projects">Browse Projects</a>
+        </div>
+
+        <p class="note">Audio and heavy 3D content are disabled on mobile by default. If you prefer the desktop view, choose "Open Desktop Experience" (may be slow on some phones).</p>
+
+        <p class="note">Contact: <a class="inline" href="mailto:hello@auxe.co">hello@auxe.co</a></p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -183,3 +183,30 @@ br {
         padding-bottom: 32px;
     }
 }
+
+/* Radix UI Specific Styles */
+:root {
+  --radix-dropdown-menu-content-z-index: 2147483647;
+  --radix-dropdown-menu-trigger-z-index: 2147483646;
+}
+
+/* Fix for Radix UI in Three.js environment */
+#radix-portal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2147483647; /* Max z-index */
+}
+
+#radix-portal-container * {
+  pointer-events: auto;
+}
+
+/* Dropdown styling */
+[data-radix-popper-content-wrapper] {
+  pointer-events: auto !important;
+  z-index: 2147483647 !important;
+}

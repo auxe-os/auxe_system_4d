@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import UIEventBus from '../EventBus';
 import InfoOverlay from './InfoOverlay';
+import LiveClock from './LiveClock';
 
 interface InterfaceUIProps {}
 
@@ -61,6 +62,35 @@ const InterfaceUI: React.FC<InterfaceUIProps> = ({}) => {
         });
     }, []);
 
+    // Non-invasive portal mount into #ui-interactive
+    const interactivePortal =
+        interfaceRef.current && !loading
+            ? createPortal(
+                  <>
+                      <div style={{ position: 'absolute', right: 16, top: 16, pointerEvents: 'auto' }} id="prevent-click">
+                          <LiveClock small />
+                      </div>
+
+                      {showScreenSwitcher && (
+                          <div 
+                              style={{ 
+                                  position: 'absolute', 
+                                  right: 16, 
+                                  bottom: 64, 
+                                  pointerEvents: 'auto',
+                                  zIndex: 999,
+                              }} 
+                              id="prevent-click"
+                              data-prevent-monitor="true"
+                          >
+                              {/* Screen switcher controls would go here */}
+                          </div>
+                      )}
+                  </>,
+                  interfaceRef.current
+              )
+            : null;
+
     // Reverted: remove bottom monitor-navigation buttons and event dispatch
 
     return !loading ? (
@@ -75,7 +105,7 @@ const InterfaceUI: React.FC<InterfaceUIProps> = ({}) => {
             >
                 <InfoOverlay visible={visible} />
             </motion.div>
-            {/* screen switcher now lives inside the monitor container (CSS3D) */}
+            {interactivePortal}
         </>
     ) : (
         <></>

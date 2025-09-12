@@ -16,7 +16,7 @@ const MuteToggle: React.FC<MuteToggleProps> = ({}) => {
     const [blockEvents, setBlockEvents] = useState(true);
 
     const onMouseDownHandler = useCallback(
-        (event) => {
+        (event: React.MouseEvent<HTMLDivElement>) => {
             setIsActive(true);
             event.preventDefault();
             setFreeCamActive(!freeCamActive);

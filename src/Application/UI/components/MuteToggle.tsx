@@ -15,7 +15,7 @@ const MuteToggle: React.FC<MuteToggleProps> = ({}) => {
     const [muted, setMuted] = useState(false);
 
     const onMouseDownHandler = useCallback(
-        (event) => {
+        (event: React.MouseEvent<HTMLDivElement>) => {
             setIsActive(true);
             event.preventDefault();
             setMuted(!muted);

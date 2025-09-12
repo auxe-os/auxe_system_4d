@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 import LoadingScreen from './components/LoadingScreen';
 import HelpPrompt from './components/HelpPrompt';
 import InterfaceUI from './components/InterfaceUI';
@@ -8,6 +8,7 @@ import './style.css';
 
 const App = () => {
     const [loading, setLoading] = useState(true);
+    const isDebug = window.location.search.includes('debug');
 
     useEffect(() => {
         eventBus.on('loadingScreenDone', () => {
@@ -24,11 +25,17 @@ const App = () => {
 };
 
 const createUI = () => {
-    ReactDOM.render(<App />, document.getElementById('ui'));
+    const container = document.getElementById('ui')!;
+    // @ts-ignore
+    const root: Root = createRoot(container);
+    root.render(<App />);
 };
 
 const createVolumeUI = () => {
-    ReactDOM.render(<InterfaceUI />, document.getElementById('ui-interactive'));
+    const container = document.getElementById('ui-interactive')!;
+    // @ts-ignore
+    const root: Root = createRoot(container);
+    root.render(<InterfaceUI />);
 };
 
 export { createUI, createVolumeUI };

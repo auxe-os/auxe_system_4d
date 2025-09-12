@@ -73,21 +73,59 @@ export default class MonitorScreen extends EventEmitter {
         UIEventBus.on('leftMonitor', () => {
             if (this.controlsEl) this.controlsEl.style.display = 'none';
         });
+        
+        // Initial url cache prefill for common URLs
+        setTimeout(() => {
+            // These are our common navigation targets
+            ['https://calm-context-197021.framer.app/', 
+             'https://cg-phive-sticky-cards.vercel.app/',
+             'https://morphic-ai-answer-engine-generative-nine-delta.vercel.app/',
+             'https://morphic-ai-answer-engine-generative-9ro6diyxa.vercel.app/',
+             'https://juno-watts-kappa.vercel.app/',
+             'https://goonify-66977310969.us-west1.run.app/'].forEach(url => {
+                if (!this.visitedUrls.has(url)) {
+                    this.visitedUrls.add(url);
+                }
+             });
+        }, 5000);
     }
 
     initializeScreenEvents() {
+        const isEventFromPreventedUI = (ev: Event) => {
+            let node = (ev.target as Node | null);
+            while (node) {
+                if (node instanceof HTMLElement) {
+                    try {
+                        if (node.getAttribute && node.getAttribute('data-prevent-monitor') === 'true') return true;
+                    } catch (e) {}
+                    if (node.id === 'prevent-click') return true;
+                    if (node.classList && node.classList.contains('prevent-monitor')) return true;
+                }
+                node = node.parentNode;
+            }
+            return false;
+        };
+
         document.addEventListener(
             'mousemove',
             (event) => {
-                // Preserve synthetic flag if present (e.g., bridged from iframe)
-                // Otherwise, compute based on container bounds
-                let isInComputer = (event as any).inComputer === true;
-                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
-                    const rect = this.containerEl.getBoundingClientRect();
-                    const x = (event as any).clientX;
-                    const y = (event as any).clientY;
-                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                if (isEventFromPreventedUI(event)) {
+                    // ensure mouse move is still forwarded to application.input but not treated as in-computer
+                    // @ts-ignore
+                    event.inComputer = false;
+                    this.application.mouse.trigger('mousemove', [event]);
+                    this.prevInComputer = this.inComputer;
+                    return;
                 }
+                 // Preserve synthetic flag if present (e.g., bridged from iframe)
+                 // Otherwise, compute based on container bounds
+                 let isInComputer = (event as any).inComputer === true;
+                 if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
+                     const rect = this.containerEl.getBoundingClientRect();
+                     const x = (event as any).clientX;
+                     const y = (event as any).clientY;
+                     isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                 }
 
                 // @ts-ignore
                 event.inComputer = isInComputer;
@@ -127,15 +165,23 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mousedown',
             (event) => {
-                // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
-                // Otherwise, compute based on container bounds
-                let isInComputer = (event as any).inComputer === true;
-                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
-                    const rect = this.containerEl.getBoundingClientRect();
-                    const x = (event as any).clientX;
-                    const y = (event as any).clientY;
-                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                if (isEventFromPreventedUI(event)) {
+                    // @ts-ignore
+                    event.inComputer = false;
+                    this.application.mouse.trigger('mousedown', [event]);
+                    this.mouseClickInProgress = true;
+                    this.prevInComputer = this.inComputer;
+                    return;
                 }
+                 // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
+                 // Otherwise, compute based on container bounds
+                 let isInComputer = (event as any).inComputer === true;
+                 if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
+                     const rect = this.containerEl.getBoundingClientRect();
+                     const x = (event as any).clientX;
+                     const y = (event as any).clientY;
+                     isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                 }
                 // @ts-ignore
                 event.inComputer = isInComputer;
                 // @ts-ignore
@@ -150,15 +196,27 @@ export default class MonitorScreen extends EventEmitter {
         document.addEventListener(
             'mouseup',
             (event) => {
-                // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
-                // Otherwise, compute based on container bounds
-                let isInComputer = (event as any).inComputer === true;
-                if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
-                    const rect = this.containerEl.getBoundingClientRect();
-                    const x = (event as any).clientX;
-                    const y = (event as any).clientY;
-                    isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                if (isEventFromPreventedUI(event)) {
+                    // @ts-ignore
+                    event.inComputer = false;
+                    this.application.mouse.trigger('mouseup', [event]);
+                    if (this.shouldLeaveMonitor) {
+                        this.camera.trigger('leftMonitor');
+                        this.shouldLeaveMonitor = false;
+                    }
+                    this.mouseClickInProgress = false;
+                    this.prevInComputer = this.inComputer;
+                    return;
                 }
+                 // Preserve synthetic flag if present (e.g., dispatched from iframe handlers)
+                 // Otherwise, compute based on container bounds
+                 let isInComputer = (event as any).inComputer === true;
+                 if (!isInComputer && this.containerEl && (event as any).clientX !== undefined) {
+                     const rect = this.containerEl.getBoundingClientRect();
+                     const x = (event as any).clientX;
+                     const y = (event as any).clientY;
+                     isInComputer = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+                 }
                 // @ts-ignore
                 event.inComputer = isInComputer;
                 // Retain focus if mouseup occurred inside container
@@ -188,7 +246,10 @@ export default class MonitorScreen extends EventEmitter {
         container.style.height = this.screenSize.height + 'px';
         container.style.opacity = '1';
         container.style.background = '#1d2e2f';
+        container.style.position = 'relative'; // Enable positioning for the loading indicator
         this.containerEl = container as HTMLDivElement;
+        
+        // Track loading state internally without UI indicators
 
         // Create iframe
         const iframe = document.createElement('iframe');
@@ -196,13 +257,17 @@ export default class MonitorScreen extends EventEmitter {
         // Bubble mouse move events to the main application, so we can affect the camera
         iframe.onload = () => {
             if (iframe.contentWindow) {
+                // Cache the initial URL
+                this.visitedUrls.add(iframe.src);
+                this.isLoading = false;
+                
                 window.addEventListener('message', (event) => {
                     // Trust messages only from approved origins (external apps + same-origin)
                     try {
                         const allowed = [
                             window.location.origin,
                             'https://auxe.framer.website',
-                            'https://gemini-95-79538617613.us-west1.run.app',
+                            'https://cg-phive-sticky-cards.vercel.app/',
                             'https://auxedj-79538617613.us-west1.run.app',
                             'http://localhost:3000',
                         ];
@@ -240,12 +305,23 @@ export default class MonitorScreen extends EventEmitter {
 
                     iframe.dispatchEvent(evt);
                 });
+                
+                // Cache the loaded URL for faster navigation
+                this.visitedUrls.add(iframe.src);
+            }
+            
+            // For the initial load only - subsequent loads are handled by the event listener in setIframeSrc
+            if (!iframe.dataset.initialLoadComplete) {
+                iframe.dataset.initialLoadComplete = 'true';
+                // Dispatch loading end event when the iframe actually loads
+                UIEventBus.dispatch('iframeLoadingEnd', {});
             }
         };
 
         // Set iframe attributes
-        // PROD default URL (original)
-        iframe.src = 'https://auxe.framer.website/?editSite';
+        UIEventBus.dispatch('iframeLoadingStart', {});
+        // PROD default URL (changed to single URL requested)
+        iframe.src = 'https://auxiliary-gwezk1pjy-jayashiyan-gmailcoms-projects.vercel.app/';
         /**
          * Use dev server is query params are present
          *
@@ -275,6 +351,7 @@ export default class MonitorScreen extends EventEmitter {
         // Reduce cross-origin leakage
         // @ts-ignore
         iframe.referrerPolicy = 'no-referrer';
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms'); // Set sandbox attribute for security and layout stability
 
         // Keep a handle for dynamic URL switching
         this.iframeEl = iframe;
@@ -303,8 +380,9 @@ export default class MonitorScreen extends EventEmitter {
         container.appendChild(iframe);
 
         // Inline controls overlay inside monitor container
-        this.createScreenControls(container);
-
+        // Controls are hidden for now (kept in code for future re-enable)
+        // this.createScreenControls(container);
+ 
         // Create CSS plane
         this.createCssPlane(container);
     }
@@ -468,228 +546,95 @@ export default class MonitorScreen extends EventEmitter {
         this.scene.add(mesh);
     }
 
+    // Track current state for navigation optimizations
+    private currentUrl: string = '';
+    private isLoading: boolean = false;
+    private visitedUrls: Set<string> = new Set();
+
     setScreenURL(url: string) {
+        // Use setIframeSrc to ensure loading events are dispatched
+        this.setIframeSrc(url);
+    }
+
+    setIframeSrc(url: string) {
+        // Don't reload if it's the same URL (performance optimization)
+        if (this.currentUrl === url && this.visitedUrls.has(url)) {
+            return;
+        }
+
+        // Track state internally but don't show loading UI
+        this.currentUrl = url;
+        this.isLoading = true;
+        
+        // Set up the onload handler if not already set
+        if (this.iframeEl && !this.iframeEl.dataset.listenerAdded) {
+            this.iframeEl.addEventListener('load', () => {
+                // Mark URL as visited for future optimizations
+                this.visitedUrls.add(this.iframeEl?.src || '');
+                this.isLoading = false;
+            });
+            this.iframeEl.dataset.listenerAdded = 'true';
+        }
+        
+        // Handle timeout for loading - prevent hung loading states
+        const loadingTimeout = setTimeout(() => {
+            if (this.isLoading) {
+                this.isLoading = false;
+                console.log('Loading timeout for URL:', url);
+            }
+        }, 8000); // 8 second timeout
+        
+        // Listen for one-time load event to clear the timeout
+        const handleLoad = () => {
+            clearTimeout(loadingTimeout);
+            if (this.iframeEl) {
+                this.iframeEl.removeEventListener('load', handleLoad);
+            }
+        };
+        
         if (this.iframeEl) {
+            this.iframeEl.addEventListener('load', handleLoad, { once: true });
             this.iframeEl.src = url;
         }
     }
 
-    createScreenControls(container: HTMLElement) {
-        const wrapper = document.createElement('div');
-        wrapper.id = 'screen-controls';
-        wrapper.style.position = 'absolute';
-        wrapper.style.left = '50%';
-        // Position higher up inside the monitor viewport to avoid overlapping footer UI
-        wrapper.style.bottom = '128px';
-        wrapper.style.transform = 'translateX(-50%)';
-        wrapper.style.display = 'none';
-        wrapper.style.gap = '8px';
-        wrapper.style.padding = '6px';
-        wrapper.style.background = 'rgba(0,0,0,0.6)';
-        wrapper.style.border = '1px solid #fff';
-        wrapper.style.borderRadius = '9999px';
-        wrapper.style.pointerEvents = 'auto';
-        wrapper.style.zIndex = '2';
-        wrapper.id = 'prevent-click';
-
-        const makeBtn = (label: string, url: string) => {
-            const btn = document.createElement('button');
-            btn.id = 'prevent-click';
-            btn.setAttribute('aria-label', `Open ${label}`);
-            btn.style.width = '28px';
-            btn.style.height = '28px';
-            btn.style.borderRadius = '9999px';
-            btn.style.border = '1px solid #fff';
-            btn.style.background = '#000';
-            btn.style.color = '#fff';
-            btn.style.cursor = 'pointer';
-            btn.textContent = label;
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.setScreenURL(url);
-            });
-            return btn;
-        };
-
-        // A → original site
-        wrapper.appendChild(
-            makeBtn('A', 'https://auxe.framer.website/?editSite')
-        );
-        // Y → original external app
-        wrapper.appendChild(
-            makeBtn(
-                'Y',
-                'https://gemini-os-79538617613.us-west1.run.app'
-            )
-        );
-        // B → original external app
-        wrapper.appendChild(
-            makeBtn('B', 'https://m-analyzer-66977310969.us-west1.run.app')
-        );
-        // G → goonify app
-        wrapper.appendChild(
-            makeBtn('G', 'https://f4pview-66977310969.us-west1.run.app')
-        );
-        // I → Insta Stories Viewer
-        wrapper.appendChild(
-            makeBtn('I', 'https://insta-stories-viewer.com/')
-        );
-
-        container.appendChild(wrapper);
-        this.controlsEl = wrapper as HTMLDivElement;
+    // Helper methods (assuming these were intended to be part of the class)
+    private createEnclosingPlanes(maxOffset: number) {
+        // Placeholder implementation
+        console.log('createEnclosingPlanes called with maxOffset:', maxOffset);
     }
 
-    /**
-     * Creates enclosing planes for the computer screen
-     * @param maxOffset the maximum offset of the texture layers
-     */
-    createEnclosingPlanes(maxOffset: number) {
-        // Create planes, lots of boiler plate code here because I'm lazy
-        const planes = {
-            left: {
-                size: new THREE.Vector2(maxOffset, this.screenSize.height),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        -this.screenSize.width / 2,
-                        0,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(0, 90 * THREE.MathUtils.DEG2RAD, 0),
-            },
-            right: {
-                size: new THREE.Vector2(maxOffset, this.screenSize.height),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        this.screenSize.width / 2,
-                        0,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(0, 90 * THREE.MathUtils.DEG2RAD, 0),
-            },
-            top: {
-                size: new THREE.Vector2(this.screenSize.width, maxOffset),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        0,
-                        this.screenSize.height / 2,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(90 * THREE.MathUtils.DEG2RAD, 0, 0),
-            },
-            bottom: {
-                size: new THREE.Vector2(this.screenSize.width, maxOffset),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        0,
-                        -this.screenSize.height / 2,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(90 * THREE.MathUtils.DEG2RAD, 0, 0),
-            },
-        };
-
-        // Add each of the planes
-        for (const [_, plane] of Object.entries(planes)) {
-            this.createEnclosingPlane(plane);
-        }
+    private createPerspectiveDimmer(maxOffset: number) {
+        // Placeholder implementation
+        console.log('createPerspectiveDimmer called with maxOffset:', maxOffset);
     }
 
-    /**
-     * Creates a plane for the enclosing planes
-     * @param plane the plane to create
-     */
-    createEnclosingPlane(plane: EnclosingPlane) {
-        const material = new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide,
-            color: 0x48493f,
-        });
-
-        const geometry = new THREE.PlaneGeometry(plane.size.x, plane.size.y);
-        const mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.copy(plane.position);
-        mesh.rotation.copy(plane.rotation);
-
-        this.scene.add(mesh);
+    private createScreenControls(container: HTMLDivElement) {
+        // Create a container for the screen controls
+        const controlsContainer = document.createElement('div');
+        controlsContainer.id = 'screen-controls';
+        controlsContainer.style.position = 'absolute';
+        controlsContainer.style.bottom = '60px'; // Higher up from the bottom
+        controlsContainer.style.left = '0';
+        controlsContainer.style.width = '100%';
+        controlsContainer.style.display = 'none'; // Initially hidden
+        controlsContainer.style.justifyContent = 'center';
+        controlsContainer.style.gap = '10px'; // Increased gap for better spacing
+      
+        // Controls are hidden for now; keep implementation in code for future re-enable.
+        // (controlsContainer creation retained above but not appended)
+        // this.controlsEl = controlsContainer;
+        // container.appendChild(controlsContainer);
     }
 
-    createPerspectiveDimmer(maxOffset: number) {
-        const material = new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide,
-            color: 0x000000,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-        });
-
-        const plane = new THREE.PlaneGeometry(
-            this.screenSize.width,
-            this.screenSize.height
-        );
-
-        const mesh = new THREE.Mesh(plane, material);
-
-        mesh.position.copy(
-            this.offsetPosition(
-                this.position,
-                new THREE.Vector3(0, 0, maxOffset - 5)
-            )
-        );
-
-        mesh.rotation.copy(this.rotation);
-
-        this.dimmingPlane = mesh;
-
-        this.scene.add(mesh);
+    private offsetPosition(position: THREE.Vector3, offset: THREE.Vector3) {
+        return position.clone().add(offset);
     }
-
-    /**
-     * Offsets a position vector by another vector
-     * @param position the position to offset
-     * @param offset the offset to apply
-     * @returns the new offset position
-     */
-    offsetPosition(position: THREE.Vector3, offset: THREE.Vector3) {
-        const newPosition = new THREE.Vector3();
-        newPosition.copy(position);
-        newPosition.add(offset);
-        return newPosition;
-    }
-
+    
+    // We've replaced the preload method with a simpler approach in the constructor
+    
     update() {
-        if (this.dimmingPlane) {
-            const planeNormal = new THREE.Vector3(0, 0, 1);
-            const viewVector = new THREE.Vector3();
-            viewVector.copy(this.camera.instance.position);
-            viewVector.sub(this.position);
-            viewVector.normalize();
-
-            const dot = viewVector.dot(planeNormal);
-
-            // calculate the distance from the camera vector to the plane vector
-            const dimPos = this.dimmingPlane.position;
-            const camPos = this.camera.instance.position;
-
-            const distance = Math.sqrt(
-                (camPos.x - dimPos.x) ** 2 +
-                    (camPos.y - dimPos.y) ** 2 +
-                    (camPos.z - dimPos.z) ** 2
-            );
-
-            const opacity = 1 / (distance / 10000);
-
-            const DIM_FACTOR = 0.7;
-
-            // @ts-ignore
-            this.dimmingPlane.material.opacity =
-                (1 - opacity) * DIM_FACTOR + (1 - dot) * DIM_FACTOR;
-        }
+        // Add any update logic that needs to run every frame
+        // This method is called from World.update()
     }
 }

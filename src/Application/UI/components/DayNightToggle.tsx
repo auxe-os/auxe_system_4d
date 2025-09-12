@@ -1,28 +1,33 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import UIEventBus from '../EventBus';
 import { Easing } from '../Animation';
 
-const RadioToggle: React.FC<{}> = ({}) => {
+interface DayNightToggleProps {}
+
+const DayNightToggle: React.FC<DayNightToggleProps> = ({}) => {
     const [isHovering, setIsHovering] = useState(false);
     const [isActive, setIsActive] = useState(false);
-    const [on, setOn] = useState(false);
+    const [isDay, setIsDay] = useState(true); // Assuming it starts as day
 
-    const onMouseDownHandler = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-        setIsActive(true);
-        event.preventDefault();
-        setOn(!on);
-    }, [on]);
+    const onMouseDownHandler = useCallback(
+        (event: React.MouseEvent<HTMLDivElement>) => {
+            setIsActive(true);
+            event.preventDefault();
+            setIsDay(!isDay);
+        },
+        [isDay]
+    );
 
     const onMouseUpHandler = useCallback(() => {
         setIsActive(false);
     }, []);
 
+    // Day/night toggle effects removed to avoid altering monitor visual state.
+    // Kept local state for UI but we no longer dispatch a global event.
     useEffect(() => {
-        UIEventBus.dispatch('radioToggle', on);
-        // typing sfx ping
-        window.postMessage({ type: 'keydown', key: `_AUTO_` }, '*');
-    }, [on]);
+        // Intentionally no-op: removing global day/night effect to prevent side-effects on monitor.
+    }, [isDay]);
 
     return (
         <div
@@ -39,10 +44,12 @@ const RadioToggle: React.FC<{}> = ({}) => {
                 style={{
                     width: window.innerWidth < 768 ? 8 : 10,
                     height: window.innerWidth < 768 ? 8 : 10,
-                    background: on ? '#0f0' : '#fff',
+                    background: isDay ? '#FFFF00' : '#808080', // Yellow for day, Gray for night
                     borderRadius: 2,
                 }}
-                animate={isActive ? 'active' : isHovering ? 'hovering' : 'default'}
+                animate={
+                    isActive ? 'active' : isHovering ? 'hovering' : 'default'
+                }
                 variants={iconVars}
             />
         </div>
@@ -52,19 +59,32 @@ const RadioToggle: React.FC<{}> = ({}) => {
 const iconVars = {
     hovering: {
         opacity: 0.8,
-        transition: { duration: 0.1, ease: 'easeOut' },
+        transition: {
+            duration: 0.1,
+            ease: 'easeOut',
+        },
     },
     active: {
-        scale: 0.9,
+        scale: 0.8,
         opacity: 0.5,
-        transition: { duration: 0.1, ease: Easing.expOut },
+        transition: {
+            duration: 0.1,
+            ease: Easing.expOut,
+        },
     },
     default: {
         scale: 1,
         opacity: 1,
-        transition: { duration: 0.2, ease: 'easeOut' },
+        transition: {
+            duration: 0.2,
+            ease: 'easeOut',
+        },
     },
 };
+
+interface StyleSheetCSS {
+    [key: string]: React.CSSProperties;
+}
 
 const styles: StyleSheetCSS = {
     container: {
@@ -80,6 +100,4 @@ const styles: StyleSheetCSS = {
     },
 };
 
-export default RadioToggle;
-
-
+export default DayNightToggle;

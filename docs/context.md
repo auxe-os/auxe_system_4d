@@ -18,6 +18,7 @@ It also covers mouse/keyboard interactions, the event bus, and extension points.
     -   See `CSS3DRenderer` usage in `src/Application/Renderer.ts`.
 -   **UI Layer (React)**: Loading screen, overlays, toggles.
     -   Mounted in `#ui` and `#ui-interactive`. See `src/Application/UI/`.
+    -   **React v18**: This project utilizes React 18, benefiting from new features like Concurrent Mode and automatic batching.
 
 ---
 
@@ -87,7 +88,7 @@ What it is:
 
 What it loads:
 
--   By default: `https://auxe.framer.website/?editSite`
+-   By default: `https://calm-context-197021.framer.app/`
 -   Dev mode (`?dev`): `http://localhost:3000/`
 
 Depth layering and look:
@@ -128,7 +129,7 @@ Use these terms when referring to the two primary camera states during interacti
         -   A small inline control bar shows three circular buttons centered near the bottom of the monitor: `A`, `Y`, `B`.
         -   These buttons dispatch a `setScreenURL` event that updates the embedded screen URL without re-creating the CSS3D object.
         -   Current mappings:
-            -   `A` → `https://auxe.framer.website/?editSite`
+            -   `A` → `https://calm-context-197021.framer.app/`
             -   `Y` → `https://www.youtube-nocookie.com/embed/<videoId>?autoplay=1&mute=1&controls=1&playsinline=1` (homepage is frame-blocked, so an embeddable endpoint is used)
             -   `B` → Fallback page that opens `https://www.bing.com/` in a new tab (Bing blocks being framed)
 
@@ -202,6 +203,27 @@ Adjust camera routes:
 Style/UI updates:
 
 -   React components live in `src/Application/UI/components/` and share styles in `src/Application/UI/style.css` and `src/style.css` (Tailwind utilities included).
+
+---
+
+## Radix UI Components
+
+The project includes Radix UI primitives for accessible UI components:
+
+- **RadixDropdownMenu**: A dropdown menu component used in the top-right corner
+  - Implementation: `src/Application/UI/components/RadixDropdownMenu.tsx`
+  - Provides actions like toggling mute, switching views, and other controls
+
+- **RadixRadio**: A radio button group used for screen switching
+  - Implementation: `src/Application/UI/components/RadixRadio.tsx`
+  - Maps options A/Y/B to different URLs for the monitor screen
+
+These components require:
+1. Proper CSS variables in the root (defined in `src/style.css`)
+2. Component-specific styles (in `src/style.css` under "Radix UI specific styles")
+3. Proper z-index management for proper layering in the 3D scene
+
+The components use the `cn` utility from `src/Application/UI/lib/utils.ts` for className merging, which combines Tailwind classes with custom styles for consistent appearance.
 
 ---
 

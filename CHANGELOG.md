@@ -9,6 +9,23 @@ The format is based on Conventional Changelog.
 ## [Unreleased]
 
 ### Added
+- Updated React to v18 for concurrent features and automatic batching.
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.1] - 2025-08-21
+
+Updated repository to current version with React v18.
+
+### Added
 
 -   Inline monitor control bar rendered inside the CSS3D monitor container with A/Y/B buttons to switch screen content.
 -   YouTube embed support via iframe-safe URLs; added fallback page for Bing to open externally.
