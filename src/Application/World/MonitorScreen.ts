@@ -321,7 +321,7 @@ export default class MonitorScreen extends EventEmitter {
         // Set iframe attributes
         UIEventBus.dispatch('iframeLoadingStart', {});
         // PROD default URL (changed to single URL requested)
-        iframe.src = 'https://auxiliary-nljqi2bes-jayashiyan-gmailcoms-projects.vercel.app/';
+        iframe.src = 'https://auxiliary-os.vercel.app/';
         /**
          * Use dev server is query params are present
          *
