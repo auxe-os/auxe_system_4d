@@ -321,7 +321,7 @@ export default class MonitorScreen extends EventEmitter {
         // Set iframe attributes
         UIEventBus.dispatch('iframeLoadingStart', {});
         // PROD default URL (changed to single URL requested)
-        iframe.src = 'https://auxiliary-gwezk1pjy-jayashiyan-gmailcoms-projects.vercel.app/';
+        iframe.src = 'https://auxiliary-nljqi2bes-jayashiyan-gmailcoms-projects.vercel.app/';
         /**
          * Use dev server is query params are present
          *
@@ -345,7 +345,7 @@ export default class MonitorScreen extends EventEmitter {
         iframe.className = 'jitter';
         iframe.id = 'computer-screen';
         iframe.frameBorder = '0';
-        iframe.title = 'HeffernanOS';
+
         // Allow common embed permissions (e.g., YouTube)
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share';
         // Reduce cross-origin leakage
