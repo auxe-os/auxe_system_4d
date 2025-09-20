@@ -5,6 +5,7 @@ import HelpPrompt from './components/HelpPrompt';
 import InterfaceUI from './components/InterfaceUI';
 import eventBus from './EventBus';
 import './style.css';
+import { injectSpeedInsights } from "@vercel/speed-insights";
 
 const App = () => {
     const [loading, setLoading] = useState(true);
@@ -14,6 +15,7 @@ const App = () => {
         eventBus.on('loadingScreenDone', () => {
             setLoading(false);
         });
+        injectSpeedInsights(); // Call the function here
     }, []);
 
     return (

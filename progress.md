@@ -9,3 +9,5 @@
 - [x] Update existing deployment on Vercel
 - [x] Connect to the new repository and update with the latest version
 - [x] Merge the fetched changes into the current branch
+- [x] Import the Speed Insights component into the app
+- [x] Deploy changes and verify performance metrics
