@@ -5,16 +5,15 @@ precision mediump float;
 const float PHI = 1.61803398874989484820459; // Φ = Golden Ratio
 uniform float u_time;
 
-// float gold_noise(vec2 xy, float seed) {
-//   return fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
-// }
-
-float noise(vec2 xy, float seed) {
-  return fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
+// A simpler, faster pseudo-random function
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 void main() {
-  gl_FragColor = vec4(noise(gl_FragCoord.xy, fract(u_time) + 1.0),
-                      noise(gl_FragCoord.xy, fract(u_time) + 2.0),
-                      noise(gl_FragCoord.xy, fract(u_time) + 3.0), 0.001);
+  // Use the simpler random function for each channel with different offsets
+  gl_FragColor = vec4(random(gl_FragCoord.xy + fract(u_time) * 100.0),
+                      random(gl_FragCoord.xy + fract(u_time) * 200.0),
+                      random(gl_FragCoord.xy + fract(u_time) * 300.0), 0.001);
+}
 }
