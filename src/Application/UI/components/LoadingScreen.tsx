@@ -104,24 +104,13 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
 
     const start = useCallback(() => {
         setLoadingOverlayOpacity(0);
-        
         // Create and resume AudioContext directly on user gesture
-        // This needs to be in a user-triggered event handler to avoid browser warnings
-        try {
-            const AudioContext =
-                // @ts-ignore
-                window.AudioContext || window.webkitAudioContext;
-            const audioContext = new AudioContext();
-            // Ensure we resume in the same call stack as the user gesture
-            audioContext.resume().then(() => {
-                console.log('AudioContext resumed successfully');
-                eventBus.dispatch('audioContextResumed', { context: audioContext });
-            }).catch(err => {
-                console.warn('Failed to resume AudioContext:', err);
-            });
-        } catch (err) {
-            console.error('Error initializing AudioContext:', err);
-        }
+        const AudioContext =
+            // @ts-ignore
+            window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        audioContext.resume();
+        eventBus.dispatch('audioContextResumed', { context: audioContext });
 
         eventBus.dispatch('loadingScreenDone', {});
         const ui = document.getElementById('ui');
