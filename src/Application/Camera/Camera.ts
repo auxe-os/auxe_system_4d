@@ -225,9 +225,11 @@ export default class Camera extends EventEmitter {
             return;
         }
 
-        for (const key in this.keyframes) {
-            const _key = key as CameraKey;
-            this.keyframes[_key].update();
+        if (this.currentKeyframe) {
+            this.keyframes[this.currentKeyframe].update();
+        }
+        if (this.targetKeyframe) {
+            this.keyframes[this.targetKeyframe].update();
         }
 
         if (this.currentKeyframe) {

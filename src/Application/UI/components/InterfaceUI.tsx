@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import UIEventBus from '../EventBus';
@@ -7,7 +7,7 @@ import LiveClock from './LiveClock';
 
 interface InterfaceUIProps {}
 
-const InterfaceUI: React.FC<InterfaceUIProps> = ({}) => {
+const InterfaceUI: React.FC<InterfaceUIProps> = React.memo(() => {
     const [initLoad, setInitLoad] = useState(true);
     const [visible, setVisible] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -28,10 +28,10 @@ const InterfaceUI: React.FC<InterfaceUIProps> = ({}) => {
         }
     }, []);
 
-    const initMouseDownHandler = () => {
+    const initMouseDownHandler = useCallback(() => {
         setVisible(true);
         setInitLoad(false);
-    };
+    }, []);
 
     useEffect(() => {
         if (!loading && initLoad) {
@@ -110,7 +110,7 @@ const InterfaceUI: React.FC<InterfaceUIProps> = ({}) => {
     ) : (
         <></>
     );
-};
+});
 
 const vars = {
     visible: {

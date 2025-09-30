@@ -31,52 +31,30 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
     // State for the boot sequence
     const [showBiosInfo, setShowBiosInfo] = useState(false);
     const [showLoadingResources, setShowLoadingResources] = useState(false);
-    const [resources] = useState<string[]>([]);
-    const [counter, setCounter] = useState(0);
-
-    // Misc State
-    const [mobileWarning, setMobileWarning] = useState(window.innerWidth < 768);
-
-    const onResize = useCallback(() => {
-        setMobileWarning(window.innerWidth < 768);
-    }, []);
-
-    useEffect(() => {
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, [onResize]);
-
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('debug')) {
-            start();
-        } else if (!detectWebGLContext()) {
-            setWebGLError(true);
-        } else {
-            setShowBiosInfo(true);
-        }
-    }, []);
+    const [resources, setResources] = useState<string[]>([]);
 
     useEffect(() => {
         eventBus.on('loadedSource', (data) => {
             setProgress(data.progress);
             setToLoad(data.toLoad);
             setLoaded(data.loaded);
-            resources.push(
-                `Loaded ${data.sourceName}${getSpace(
-                    data.sourceName
-                )} ... ${Math.round(data.progress * 100)}%`
-            );
-            if (resources.length > 8) {
-                resources.shift();
-            }
+
+            setResources((prevResources) => {
+                const newResources = [
+                    ...prevResources,
+                    `Loaded ${data.sourceName}${getSpace(
+                        data.sourceName
+                    )} ... ${Math.round(data.progress * 100)}%`,
+                ];
+                if (newResources.length > 8) {
+                    newResources.shift();
+                }
+                return newResources;
+            });
         });
     }, []);
 
-    useEffect(() => {
-        setShowLoadingResources(true);
-        setCounter(counter + 1);
-    }, [loaded]);
+    const [mobileWarning, setMobileWarning] = useState(window.innerWidth < 768);
 
     useEffect(() => {
         if (progress >= 1 && !webGLError) {
@@ -126,6 +104,14 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
 
     const start = useCallback(() => {
         setLoadingOverlayOpacity(0);
+        // Create and resume AudioContext directly on user gesture
+        const AudioContext =
+            // @ts-ignore
+            window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        audioContext.resume();
+        eventBus.dispatch('audioContextResumed', { context: audioContext });
+
         eventBus.dispatch('loadingScreenDone', {});
         const ui = document.getElementById('ui');
         if (ui) ui.style.pointerEvents = 'none';

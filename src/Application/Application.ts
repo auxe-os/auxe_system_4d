@@ -6,10 +6,11 @@ import Time from './Utils/Time';
 import Camera from './Camera/Camera';
 import Renderer from './Renderer';
 import Mouse from './Utils/Mouse';
+import Resources from './Utils/Resources';
 
 //@ts-ignore
 import World from './World/World';
-import Resources from './Utils/Resources';
+import SpeedInsights from "@vercel/speed-insights";
 
 import sources from './sources';
 

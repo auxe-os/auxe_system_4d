@@ -37,6 +37,7 @@ export default class MonitorScreen extends EventEmitter {
     iframeEl?: HTMLIFrameElement;
     controlsEl?: HTMLDivElement;
     containerEl?: HTMLDivElement;
+    enclosureGroup: THREE.Group;
 
 
     constructor() {
@@ -53,6 +54,10 @@ export default class MonitorScreen extends EventEmitter {
         this.videoTextures = {};
         this.mouseClickInProgress = false;
         this.shouldLeaveMonitor = false;
+        this.enclosureGroup = new THREE.Group();
+        this.enclosureGroup.position.copy(this.position);
+        this.enclosureGroup.rotation.copy(this.rotation);
+        this.scene.add(this.enclosureGroup);
 
         // Create screen
         this.initializeScreenEvents();
@@ -321,7 +326,7 @@ export default class MonitorScreen extends EventEmitter {
         // Set iframe attributes
         UIEventBus.dispatch('iframeLoadingStart', {});
         // PROD default URL (changed to single URL requested)
-        iframe.src = 'https://auxiliary-gwezk1pjy-jayashiyan-gmailcoms-projects.vercel.app/';
+        iframe.src = 'https://auxiliary-os.vercel.app/';
         /**
          * Use dev server is query params are present
          *
@@ -345,7 +350,7 @@ export default class MonitorScreen extends EventEmitter {
         iframe.className = 'jitter';
         iframe.id = 'computer-screen';
         iframe.frameBorder = '0';
-        iframe.title = 'HeffernanOS';
+
         // Allow common embed permissions (e.g., YouTube)
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share';
         // Reduce cross-origin leakage
@@ -600,13 +605,77 @@ export default class MonitorScreen extends EventEmitter {
 
     // Helper methods (assuming these were intended to be part of the class)
     private createEnclosingPlanes(maxOffset: number) {
-        // Placeholder implementation
-        console.log('createEnclosingPlanes called with maxOffset:', maxOffset);
+        
+        
+        // Create planes to enclose the monitor screen
+        const planeWidth = this.screenSize.width;
+        const planeHeight = this.screenSize.height;
+        const planeGeometry = new THREE.PlaneGeometry(planeWidth + 0.2, planeHeight + 0.2);
+        const planeMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x000000,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        // Create back plane
+        const backPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        backPlane.position.set(0, 0, -0.01 - maxOffset * 0.01);
+        this.enclosureGroup.add(backPlane);
+        
+        // Create side planes (left, right, top, bottom)
+        const edgePlanes = [
+            { pos: [-planeWidth / 2 - 0.1, 0, 0], rot: [0, Math.PI / 2, 0], size: [planeHeight + 0.2, 0.2] },
+            { pos: [planeWidth / 2 + 0.1, 0, 0], rot: [0, -Math.PI / 2, 0], size: [planeHeight + 0.2, 0.2] },
+            { pos: [0, planeHeight / 2 + 0.1, 0], rot: [Math.PI / 2, 0, 0], size: [planeWidth + 0.2, 0.2] },
+            { pos: [0, -planeHeight / 2 - 0.1, 0], rot: [-Math.PI / 2, 0, 0], size: [planeWidth + 0.2, 0.2] }
+        ];
+
+        edgePlanes.forEach(edge => {
+            const edgeGeometry = new THREE.PlaneGeometry(edge.size[0], edge.size[1]);
+            const edgePlane = new THREE.Mesh(edgeGeometry, planeMaterial);
+            edgePlane.position.set(edge.pos[0], edge.pos[1], edge.pos[2]);
+            edgePlane.rotation.set(edge.rot[0], edge.rot[1], edge.rot[2]);
+            this.enclosureGroup.add(edgePlane);
+        });
     }
 
     private createPerspectiveDimmer(maxOffset: number) {
-        // Placeholder implementation
-        console.log('createPerspectiveDimmer called with maxOffset:', maxOffset);
+        
+
+        // Create a gradient dimmer for perspective effect
+        const dimmerGeometry = new THREE.PlaneGeometry(this.screenSize.width, this.screenSize.height);
+        const dimmerMaterial = new THREE.ShaderMaterial({
+            transparent: true,
+            uniforms: {
+                opacity: { value: 0.2 },
+                maxOffset: { value: maxOffset * 0.01 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float opacity;
+                uniform float maxOffset;
+                varying vec2 vUv;
+                void main() {
+                    float edgeFade = min(
+                        min(vUv.x * 3.0, (1.0 - vUv.x) * 3.0),
+                        min(vUv.y * 3.0, (1.0 - vUv.y) * 3.0)
+                    );
+                    float alpha = opacity * (1.0 - edgeFade);
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
+                }
+            `
+        });
+        
+        const dimmer = new THREE.Mesh(dimmerGeometry, dimmerMaterial);
+        dimmer.position.set(0, 0, 0.01 + maxOffset * 0.005);
+        this.enclosureGroup.add(dimmer);
     }
 
     private createScreenControls(container: HTMLDivElement) {
