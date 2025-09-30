@@ -70,17 +70,22 @@ export class ComputerAudio extends AudioSource {
 
 export class AmbienceAudio extends AudioSource {
     poolKey: string;
+    private lastUpdateTime: number = 0;
+    private updateInterval: number = 100; // milliseconds
+    private currentFreq: number = 100; // Initial frequency
+    private currentVolume: number = 0.05; // Initial volume
+    private interpolationFactor: number = 0.1; // How quickly to interpolate
 
     constructor(manager: AudioManager) {
         super(manager);
         UIEventBus.on('loadingScreenDone', () => {
             this.poolKey = this.manager.playAudio('office', {
-                volume: 1,
+                volume: this.currentVolume,
                 loop: true,
                 randDetuneScale: 0,
                 filter: {
                     type: 'lowpass',
-                    frequency: 1000,
+                    frequency: this.currentFreq,
                 },
             });
             this.manager.playAudio('startup', {
@@ -105,6 +110,14 @@ export class AmbienceAudio extends AudioSource {
     }
 
     update() {
+        const currentTime = this.manager.application.time.elapsed;
+
+        if (currentTime - this.lastUpdateTime < this.updateInterval) {
+            return;
+        }
+
+        this.lastUpdateTime = currentTime;
+
         const cameraPosition =
             this.manager.application.camera.instance.position;
         const y = cameraPosition.y;
@@ -114,13 +127,15 @@ export class AmbienceAudio extends AudioSource {
         // calculate distance to origin
         const distance = Math.sqrt(x * x + y * y + z * z);
 
-        const freq = this.mapValues(distance, 0, 10000, 100, 22000);
+        const targetFreq = this.mapValues(distance, 0, 10000, 100, 22000);
+        const targetVolume = Math.min(Math.max(this.mapValues(distance, 1200, 10000, 0, 0.2), 0.05), 0.1);
 
-        const volume = this.mapValues(distance, 1200, 10000, 0, 0.2);
-        const volumeClamped = Math.min(Math.max(volume, 0.05), 0.1);
+        // Interpolate current values towards target values
+        this.currentFreq = this.currentFreq + (targetFreq - this.currentFreq) * this.interpolationFactor;
+        this.currentVolume = this.currentVolume + (targetVolume - this.currentVolume) * this.interpolationFactor;
 
-        this.manager.setAudioFilterFrequency(this.poolKey, freq - 3000);
-        this.manager.setAudioVolume(this.poolKey, volumeClamped);
+        this.manager.setAudioFilterFrequency(this.poolKey, this.currentFreq - 3000);
+        this.manager.setAudioVolume(this.poolKey, this.currentVolume);
     }
 }
 

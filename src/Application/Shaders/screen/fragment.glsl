@@ -2,7 +2,7 @@
 precision mediump float;
 #endif
 
-const float PHI = 1.61803398874989484820459; // Φ = Golden Ratio
+ 
 uniform float u_time;
 
 // A simpler, faster pseudo-random function
@@ -15,5 +15,4 @@ void main() {
   gl_FragColor = vec4(random(gl_FragCoord.xy + fract(u_time) * 100.0),
                       random(gl_FragCoord.xy + fract(u_time) * 200.0),
                       random(gl_FragCoord.xy + fract(u_time) * 300.0), 0.001);
-}
 }

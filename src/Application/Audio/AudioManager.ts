@@ -32,14 +32,8 @@ export default class Audio {
             radio: new RadioAudio(this),
         };
 
-        UIEventBus.on('loadingScreenDone', () => {
-            setTimeout(() => {
-                const AudioContext =
-                    // @ts-ignore
-                    window.AudioContext || window.webkitAudioContext;
-                this.context = new AudioContext();
-                this.context.resume();
-            }, 100);
+        UIEventBus.on('audioContextResumed', (data) => {
+            this.context = data.context;
         });
 
         UIEventBus.on('muteToggle', (mute: boolean) => {

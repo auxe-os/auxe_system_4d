@@ -7,7 +7,7 @@ import eventBus from './EventBus';
 import './style.css';
 import { injectSpeedInsights } from "@vercel/speed-insights";
 
-const App = () => {
+const App = React.memo(() => {
     const [loading, setLoading] = useState(true);
     const isDebug = window.location.search.includes('debug');
 
@@ -24,7 +24,7 @@ const App = () => {
             <LoadingScreen />
         </div>
     );
-};
+});
 
 const createUI = () => {
     const container = document.getElementById('ui')!;
